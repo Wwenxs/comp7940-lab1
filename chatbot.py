@@ -28,12 +28,13 @@ def main():
     # dispatcher for chatgpt
     global chatgpt
     chatgpt = HKBU_ChatGPT(config)
-    chatgpt_handler = MessageHandler(Filters.text & (~Filters.command),
-                    equiped_chatgpt)
+    chatgpt_handler = MessageHandler(Filters.text & (~Filters.command),equiped_chatgpt)
     dispatcher.add_handler(chatgpt_handler)
     # on different commands - answer in Telegram
     dispatcher.add_handler(CommandHandler("add", add))
     dispatcher.add_handler(CommandHandler("help", help_command))
+    #lab task
+    dispatcher.add_handler(CommandHandler("hello",hello))
     # To start the bot:
     updater.start_polling()
     updater.idle()
@@ -61,6 +62,18 @@ def help_command(update: Update, context: CallbackContext) -> None:
     update.message.reply_text('Helping you helping you.')
 
 
+def hello(update: Update, context: CallbackContext) -> None:
+    """Send a message when the command /hello is issued."""
+    try:
+        global redis1
+        logging.info(context.args[0])
+        msg = context.args[0]   # /add keyword <-- this should store the keyword
+        redis1.incr(msg)
+        update.message.reply_text('Good Day, ' + msg + '!')
+    except (IndexError, ValueError):
+        update.message.reply_text('Usage: /hello <keyword>')
+
+
 def add(update: Update, context: CallbackContext) -> None:
     """Send a message when the command /add is issued."""
     try:
@@ -72,5 +85,6 @@ def add(update: Update, context: CallbackContext) -> None:
                         redis1.get(msg).decode('UTF-8') + ' times.')
     except (IndexError, ValueError):
         update.message.reply_text('Usage: /add <keyword>')
+
 if __name__ == '__main__':
     main()
